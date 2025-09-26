@@ -1,6 +1,8 @@
 package com.sifang.insurance.payment.config;
 
 import org.springframework.cloud.stream.annotation.Input;
+import org.springframework.cloud.stream.annotation.Output;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.SubscribableChannel;
 
 /**
@@ -29,6 +31,11 @@ public interface StreamChannelConfig {
     String REFUND_SUCCESS_CHANNEL = "refundSuccessChannel";
     
     /**
+     * 通用输出通道
+     */
+    String OUTPUT_CHANNEL = "output";
+    
+    /**
      * 获取订单创建消息输入通道
      */
     @Input(ORDER_CREATED_CHANNEL)
@@ -39,4 +46,10 @@ public interface StreamChannelConfig {
      */
     @Input(ORDER_CANCELED_CHANNEL)
     SubscribableChannel orderCanceledChannel();
+    
+    /**
+     * 获取通用输出通道
+     */
+    @Output(OUTPUT_CHANNEL)
+    MessageChannel output();
 }

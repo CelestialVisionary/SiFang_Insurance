@@ -2,6 +2,7 @@ package com.sifang.insurance.payment.consumer;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.sifang.insurance.payment.config.StreamChannelConfig;
 import com.sifang.insurance.payment.dto.CreatePaymentRequest;
 import com.sifang.insurance.payment.service.PaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +24,7 @@ public class OrderMessageConsumer {
      * 接收订单创建消息
      * 当订单创建成功后，自动创建支付记录
      */
-    @StreamListener("orderCreatedChannel")
+    @StreamListener(StreamChannelConfig.ORDER_CREATED_CHANNEL)
     public void handleOrderCreated(@Payload String message) {
         try {
             // 解析消息
@@ -32,7 +33,7 @@ public class OrderMessageConsumer {
             // 构建支付请求
             CreatePaymentRequest paymentRequest = new CreatePaymentRequest();
             paymentRequest.setOrderId(messageObj.getString("orderId"));
-            paymentRequest.setUserId(messageObj.getString("userId"));
+            paymentRequest.setUserId(messageObj.getLong("userId"));
             paymentRequest.setAmount(messageObj.getBigDecimal("amount"));
             paymentRequest.setPaymentMethod(1); // 默认使用支付宝
             paymentRequest.setProductName(messageObj.getString("productName"));
@@ -54,7 +55,7 @@ public class OrderMessageConsumer {
      * 接收订单取消消息
      * 当订单取消时，关闭或删除相关的支付记录
      */
-    @StreamListener("orderCanceledChannel")
+    @StreamListener(StreamChannelConfig.ORDER_CANCELED_CHANNEL)
     public void handleOrderCanceled(@Payload String message) {
         try {
             // 解析消息

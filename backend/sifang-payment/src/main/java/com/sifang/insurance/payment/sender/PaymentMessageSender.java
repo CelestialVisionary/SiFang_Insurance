@@ -1,7 +1,10 @@
 package com.sifang.insurance.payment.sender;
 
 import com.alibaba.fastjson.JSON;
+import com.sifang.insurance.payment.config.StreamChannelConfig;
 import com.sifang.insurance.payment.entity.PaymentRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.annotation.Output;
 import org.springframework.cloud.stream.messaging.Source;
@@ -20,6 +23,8 @@ import java.util.Map;
 @Component
 public class PaymentMessageSender {
 
+    private static final Logger log = LoggerFactory.getLogger(PaymentMessageSender.class);
+
     @Autowired
     private MessageChannel output;
 
@@ -28,6 +33,7 @@ public class PaymentMessageSender {
      */
     public boolean sendPaymentSuccessMessage(PaymentRecord record) {
         try {
+            log.info("开始发送支付成功消息，订单ID: {}, 支付流水号: {}", record.getOrderId(), record.getPaymentNo());
             Map<String, Object> message = new HashMap<>();
             message.put("orderId", record.getOrderId());
             message.put("paymentNo", record.getPaymentNo());
@@ -42,9 +48,11 @@ public class PaymentMessageSender {
                     .setHeader("type", "payment_success")
                     .build();
             
-            return output.send(springMessage);
+            boolean result = output.send(springMessage);
+            log.info("支付成功消息发送{}", result ? "成功" : "失败");
+            return result;
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("发送支付成功消息异常", e);
             return false;
         }
     }
@@ -54,6 +62,7 @@ public class PaymentMessageSender {
      */
     public boolean sendRefundSuccessMessage(PaymentRecord record) {
         try {
+            log.info("开始发送退款成功消息，订单ID: {}, 支付流水号: {}", record.getOrderId(), record.getPaymentNo());
             Map<String, Object> message = new HashMap<>();
             message.put("orderId", record.getOrderId());
             message.put("paymentNo", record.getPaymentNo());
@@ -67,9 +76,11 @@ public class PaymentMessageSender {
                     .setHeader("type", "refund_success")
                     .build();
             
-            return output.send(springMessage);
+            boolean result = output.send(springMessage);
+            log.info("退款成功消息发送{}", result ? "成功" : "失败");
+            return result;
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("发送退款成功消息异常", e);
             return false;
         }
     }
@@ -79,6 +90,8 @@ public class PaymentMessageSender {
      */
     public boolean sendPaymentFailedMessage(PaymentRecord record, String reason) {
         try {
+            log.info("开始发送支付失败消息，订单ID: {}, 支付流水号: {}, 失败原因: {}", 
+                    record.getOrderId(), record.getPaymentNo(), reason);
             Map<String, Object> message = new HashMap<>();
             message.put("orderId", record.getOrderId());
             message.put("paymentNo", record.getPaymentNo());
@@ -93,9 +106,11 @@ public class PaymentMessageSender {
                     .setHeader("type", "payment_failed")
                     .build();
             
-            return output.send(springMessage);
+            boolean result = output.send(springMessage);
+            log.info("支付失败消息发送{}", result ? "成功" : "失败");
+            return result;
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("发送支付失败消息异常", e);
             return false;
         }
     }
