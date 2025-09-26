@@ -42,7 +42,7 @@ public class DroolsConfig {
             String filePath = resource.getURI().toString();
             String fileName = filePath.substring(filePath.lastIndexOf("/"));
             kieFileSystem.write("src/main/resources/rules" + fileName, 
-                ResourceFactory.newUrlResource(resource.getURI()));
+                ResourceFactory.newUrlResource(resource.getURI().toURL()));
         }
         
         KieBuilder kieBuilder = kieServices.newKieBuilder(kieFileSystem).buildAll();

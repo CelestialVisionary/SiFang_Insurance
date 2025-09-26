@@ -1,0 +1,116 @@
+package com.sifang.insurance.rules;
+
+import com.sifang.insurance.calculator.dto.CalculatePremiumRequest;
+import com.sifang.insurance.calculator.dto.CalculatePremiumResponse;
+import java.math.BigDecimal;
+
+/**
+ * 保费计算规则文件
+ */
+
+// 规则1: 基础保费计算规则
+rule "Basic Premium Calculation"
+    when
+        $request: CalculatePremiumRequest()
+        $response: CalculatePremiumResponse()
+    then
+        // 基础保费计算逻辑由服务层实现
+        System.out.println("Applying basic premium calculation rule");
+end
+
+// 规则2: 年龄系数规则
+rule "Age Factor Rule"
+    when
+        $request: CalculatePremiumRequest(insuredAge >= 0 && insuredAge <= 18)
+        $response: CalculatePremiumResponse()
+    then
+        System.out.println("Applying child age factor: 1.2");
+end
+
+rule "Adult Age Factor Rule"
+    when
+        $request: CalculatePremiumRequest(insuredAge >= 19 && insuredAge <= 60)
+        $response: CalculatePremiumResponse()
+    then
+        System.out.println("Applying adult age factor: 1.0");
+end
+
+rule "Senior Age Factor Rule"
+    when
+        $request: CalculatePremiumRequest(insuredAge >= 61 && insuredAge <= 80)
+        $response: CalculatePremiumResponse()
+    then
+        System.out.println("Applying senior age factor: 1.5");
+end
+
+// 规则3: 职业风险系数规则
+rule "High Risk Occupation Rule"
+    when
+        $request: CalculatePremiumRequest(insuredOccupation != null && 
+            (insuredOccupation.contains("建筑") || 
+             insuredOccupation.contains("高空") || 
+             insuredOccupation.contains("矿业")))
+        $response: CalculatePremiumResponse()
+    then
+        System.out.println("Applying high risk occupation factor: 1.8");
+end
+
+rule "Medium Risk Occupation Rule"
+    when
+        $request: CalculatePremiumRequest(insuredOccupation != null && 
+            (insuredOccupation.contains("销售") || 
+             insuredOccupation.contains("服务") || 
+             insuredOccupation.contains("运输")))
+        $response: CalculatePremiumResponse()
+    then
+        System.out.println("Applying medium risk occupation factor: 1.3");
+end
+
+rule "Low Risk Occupation Rule"
+    when
+        $request: CalculatePremiumRequest(insuredOccupation != null && 
+            (insuredOccupation.contains("办公室") || 
+             insuredOccupation.contains("管理") || 
+             insuredOccupation.contains("研发")))
+        $response: CalculatePremiumResponse()
+    then
+        System.out.println("Applying low risk occupation factor: 1.0");
+end
+
+// 规则4: 地区系数规则
+rule "High Risk Area Rule"
+    when
+        $request: CalculatePremiumRequest(coverageArea != null && 
+            (coverageArea.contains("新疆") || 
+             coverageArea.contains("西藏") || 
+             coverageArea.contains("青海")))
+        $response: CalculatePremiumResponse()
+    then
+        System.out.println("Applying high risk area factor: 1.4");
+end
+
+rule "Normal Area Rule"
+    when
+        $request: CalculatePremiumRequest(coverageArea != null)
+        $response: CalculatePremiumResponse()
+    then
+        System.out.println("Applying normal area factor: 1.0");
+end
+
+// 规则5: 保险金额折扣规则
+rule "Large Amount Discount Rule"
+    when
+        $request: CalculatePremiumRequest(insuredAmount != null && insuredAmount.compareTo(new BigDecimal(1000000)) >= 0)
+        $response: CalculatePremiumResponse()
+    then
+        System.out.println("Applying large amount discount: 0.95");
+end
+
+// 规则6: 长期保障折扣规则
+rule "Long Term Discount Rule"
+    when
+        $request: CalculatePremiumRequest(coveragePeriod != null && coveragePeriod >= 24)
+        $response: CalculatePremiumResponse()
+    then
+        System.out.println("Applying long term discount: 0.92");
+end

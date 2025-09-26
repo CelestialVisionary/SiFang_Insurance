@@ -22,4 +22,14 @@ public interface PremiumCalculateService {
      * 校验保费计算参数
      */
     boolean validateRequest(CalculatePremiumRequest request);
+    
+    /**
+     * 根据计算流水号查询计算结果
+     */
+    CalculatePremiumResponse getCalculateResultByNo(String calculateNo);
+    
+    /**
+     * 获取产品的基础费率
+     */
+    Double getBaseRate(Long productId, Integer age, Integer gender);
 }

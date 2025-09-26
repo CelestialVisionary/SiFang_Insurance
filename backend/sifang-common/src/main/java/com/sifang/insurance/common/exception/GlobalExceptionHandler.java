@@ -35,7 +35,7 @@ public class GlobalExceptionHandler {
         e.getBindingResult().getFieldErrors().forEach(fieldError -> {
             errors.put(fieldError.getField(), fieldError.getDefaultMessage());
         });
-        return ResponseResult.fail(400, "参数校验失败", errors);
+        return new ResponseResult<>(400, "参数校验失败", errors);
     }
 
     /**

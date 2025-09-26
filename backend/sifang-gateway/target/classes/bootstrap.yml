@@ -1,0 +1,66 @@
+server:
+  port: 8888
+
+spring:
+  application:
+    name: sifang-gateway
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+      config:
+        server-addr: localhost:8848
+        file-extension: yml
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        # 认证服务路由
+        - id: sifang-auth
+          uri: lb://sifang-auth
+          predicates:
+            - Path=/auth/**
+          filters:
+            - StripPrefix=1
+        # 产品服务路由
+        - id: sifang-product
+          uri: lb://sifang-product
+          predicates:
+            - Path=/product/**
+          filters:
+            - StripPrefix=1
+        # 计算服务路由
+        - id: sifang-calculator
+          uri: lb://sifang-calculator
+          predicates:
+            - Path=/calculator/**
+          filters:
+            - StripPrefix=1
+        # 核保服务路由
+        - id: sifang-underwriting
+          uri: lb://sifang-underwriting
+          predicates:
+            - Path=/underwriting/**
+          filters:
+            - StripPrefix=1
+        # 订单服务路由
+        - id: sifang-order
+          uri: lb://sifang-order
+          predicates:
+            - Path=/order/**
+          filters:
+            - StripPrefix=1
+        # 支付服务路由
+        - id: sifang-payment
+          uri: lb://sifang-payment
+          predicates:
+            - Path=/payment/**
+          filters:
+            - StripPrefix=1
+
+# 日志配置
+logging:
+  level:
+    org.springframework.cloud.gateway: debug

@@ -5,19 +5,15 @@ import com.sifang.insurance.calculator.dto.CalculatePremiumResponse;
 import com.sifang.insurance.calculator.entity.PremiumRule;
 import com.sifang.insurance.calculator.service.PremiumCalculateService;
 import com.sifang.insurance.calculator.service.PremiumRuleService;
-import org.kie.api.KieServices;
 import org.kie.api.runtime.KieContainer;
-import org.kie.api.runtime.KieSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.Period;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 保费计算服务实现类
@@ -121,7 +117,7 @@ public class PremiumCalculateServiceImpl implements PremiumCalculateService {
         
         return response;
     }
-
+    
     @Override
     public boolean validateRequest(CalculatePremiumRequest request) {
         if (request == null) {
@@ -144,7 +140,25 @@ public class PremiumCalculateServiceImpl implements PremiumCalculateService {
         }
         return true;
     }
-
+    
+    @Override
+    public CalculatePremiumResponse getCalculateResultByNo(String calculateNo) {
+        // 简单实现，实际应从数据库或缓存中查询
+        return null;
+    }
+    
+    @Override
+    public Double getBaseRate(Long productId, Integer age, Integer gender) {
+        // 获取产品的基础费率
+        List<PremiumRule> rules = premiumRuleService.getActiveRulesByProductId(productId);
+        for (PremiumRule rule : rules) {
+            if (rule.getRuleType() == 1) { // 基础费率规则
+                return rule.getRuleValue().doubleValue();
+            }
+        }
+        return null;
+    }
+    
     /**
      * 判断年龄是否匹配规则条件
      */
@@ -153,7 +167,7 @@ public class PremiumCalculateServiceImpl implements PremiumCalculateService {
         // 例如：{"min":18, "max":60}
         return true;
     }
-
+    
     /**
      * 判断职业是否匹配规则条件
      */
@@ -161,7 +175,7 @@ public class PremiumCalculateServiceImpl implements PremiumCalculateService {
         // 简化实现，实际应该解析JSON格式的条件
         return true;
     }
-
+    
     /**
      * 判断地区是否匹配规则条件
      */

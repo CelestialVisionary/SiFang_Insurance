@@ -1,0 +1,43 @@
+server:
+  port: 8082
+  servlet:
+    context-path: /sifang-calculator
+
+spring:
+  application:
+    name: sifang-calculator
+  datasource:
+    url: jdbc:mysql://localhost:3306/sifang_insurance?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+
+mybatis-plus:
+  mapper-locations: classpath*:mapper/**/*.xml
+  type-aliases-package: com.sifang.insurance.calculator.entity
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+# 计算服务配置
+calculator:
+  default-rule-id: 1
+  cache-enabled: true
+  cache-expire-time: 3600
+  max-params-count: 100
+
+# 规则引擎配置
+drools:
+  rules:
+    path: classpath:rules/
+  update:
+    enabled: true
+
+# 日志配置
+logging:
+  level:
+    root: info
+    com.sifang.insurance.calculator: debug

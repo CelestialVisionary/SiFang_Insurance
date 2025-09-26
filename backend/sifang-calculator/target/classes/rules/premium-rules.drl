@@ -1,0 +1,63 @@
+package com.sifang.insurance.rules
+
+import com.sifang.insurance.calculator.entity.CalculationRecord
+
+/**
+ * 保费计算规则文件
+ */
+
+// 规则1：年轻客户折扣
+rule "YoungCustomerDiscount"
+    when
+        $record: CalculationRecord(age != null && age < 25 && finalPremium != null)
+    then
+        // 25岁以下客户享受5%折扣
+        double discount = $record.getFinalPremium() * 0.05;
+        $record.setFinalPremium($record.getFinalPremium() - discount);
+        $record.setCalculateDescription($record.getCalculateDescription() + "，应用年轻客户折扣5%");
+        System.out.println("应用年轻客户折扣: -" + discount);
+end
+
+// 规则2：老客户折扣
+rule "LoyalCustomerDiscount"
+    when
+        $record: CalculationRecord(customerLevel != null && customerLevel >= 3 && finalPremium != null)
+    then
+        // 3级及以上客户享受10%折扣
+        double discount = $record.getFinalPremium() * 0.10;
+        $record.setFinalPremium($record.getFinalPremium() - discount);
+        $record.setCalculateDescription($record.getCalculateDescription() + "，应用老客户折扣10%");
+        System.out.println("应用老客户折扣: -" + discount);
+end
+
+// 规则3：高风险客户加价
+rule "HighRiskSurcharge"
+    when
+        $record: CalculationRecord(riskLevel != null && riskLevel >= 4 && finalPremium != null)
+    then
+        // 风险等级4级及以上客户加价20%
+        double surcharge = $record.getFinalPremium() * 0.20;
+        $record.setFinalPremium($record.getFinalPremium() + surcharge);
+        $record.setCalculateDescription($record.getCalculateDescription() + "，应用高风险加价20%");
+        System.out.println("应用高风险加价: +" + surcharge);
+end
+
+// 规则4：最低保费限制
+rule "MinPremiumLimit"
+    when
+        $record: CalculationRecord(minPremium != null && finalPremium != null && finalPremium < $record.getMinPremium())
+    then
+        $record.setFinalPremium($record.getMinPremium());
+        $record.setCalculateDescription($record.getCalculateDescription() + "，调整至最低保费" + $record.getMinPremium());
+        System.out.println("调整至最低保费: " + $record.getMinPremium());
+end
+
+// 规则5：最高保费限制
+rule "MaxPremiumLimit"
+    when
+        $record: CalculationRecord(maxPremium != null && finalPremium != null && finalPremium > $record.getMaxPremium())
+    then
+        $record.setFinalPremium($record.getMaxPremium());
+        $record.setCalculateDescription($record.getCalculateDescription() + "，调整至最高保费" + $record.getMaxPremium());
+        System.out.println("调整至最高保费: " + $record.getMaxPremium());
+end

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sifang.insurance.calculator.mapper.CalculationRecordMapper">
+
+    <resultMap id="BaseResultMap" type="com.sifang.insurance.calculator.entity.CalculationRecord">
+        <id column="id" property="id"/>
+        <result column="calculate_no" property="calculateNo"/>
+        <result column="product_id" property="productId"/>
+        <result column="product_name" property="productName"/>
+        <result column="user_id" property="userId"/>
+        <result column="calculate_params" property="calculateParams"/>
+        <result column="rule_id" property="ruleId"/>
+        <result column="base_premium" property="basePremium"/>
+        <result column="final_premium" property="finalPremium"/>
+        <result column="discount_amount" property="discountAmount"/>
+        <result column="additional_fee" property="additionalFee"/>
+        <result column="calculate_description" property="calculateDescription"/>
+        <result column="status" property="status"/>
+        <result column="fail_reason" property="failReason"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, calculate_no, product_id, product_name, user_id, calculate_params, 
+        rule_id, base_premium, final_premium, discount_amount, additional_fee, 
+        calculate_description, status, fail_reason, create_time, update_time
+    </sql>
+
+    <select id="selectByCalculateNo" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM calculation_record
+        WHERE calculate_no = #{calculateNo}
+    </select>
+
+    <select id="selectByUserId" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List"/>
+        FROM calculation_record
+        WHERE user_id = #{userId}
+        ORDER BY create_time DESC
+        LIMIT #{start}, #{limit}
+    </select>
+
+    <select id="countByProductId" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM calculation_record
+        WHERE product_id = #{productId}
+    </select>
+
+    <select id="countTodayRecords" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM calculation_record
+        WHERE DATE(create_time) = CURRENT_DATE
+    </select>
+</mapper>
