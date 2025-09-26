@@ -1,66 +1,46 @@
-server:
-  port: 8888
-
 spring:
   application:
     name: sifang-gateway
   cloud:
     nacos:
       discovery:
-        server-addr: localhost:8848
+        # 注册中心高可用配置
+        server-addr: 192.168.1.101:8848,192.168.1.102:8848,192.168.1.103:8848
+        namespace: public
+        group: DEFAULT_GROUP
+        health-check-enabled: true
+        heart-beat-interval: 5000
+        heart-beat-timeout: 15000
       config:
-        server-addr: localhost:8848
+        # 配置中心高可用配置
+        server-addr: 192.168.1.101:8848,192.168.1.102:8848,192.168.1.103:8848
+        namespace: public
+        group: DEFAULT_GROUP
         file-extension: yml
-    gateway:
-      discovery:
-        locator:
-          enabled: true
-          lower-case-service-id: true
-      routes:
-        # 认证服务路由
-        - id: sifang-auth
-          uri: lb://sifang-auth
-          predicates:
-            - Path=/auth/**
-          filters:
-            - StripPrefix=1
-        # 产品服务路由
-        - id: sifang-product
-          uri: lb://sifang-product
-          predicates:
-            - Path=/product/**
-          filters:
-            - StripPrefix=1
-        # 计算服务路由
-        - id: sifang-calculator
-          uri: lb://sifang-calculator
-          predicates:
-            - Path=/calculator/**
-          filters:
-            - StripPrefix=1
-        # 核保服务路由
-        - id: sifang-underwriting
-          uri: lb://sifang-underwriting
-          predicates:
-            - Path=/underwriting/**
-          filters:
-            - StripPrefix=1
-        # 订单服务路由
-        - id: sifang-order
-          uri: lb://sifang-order
-          predicates:
-            - Path=/order/**
-          filters:
-            - StripPrefix=1
-        # 支付服务路由
-        - id: sifang-payment
-          uri: lb://sifang-payment
-          predicates:
-            - Path=/payment/**
-          filters:
-            - StripPrefix=1
+        refresh-enabled: true
+        timeout: 5000
+    sentinel:
+      transport:
+        dashboard: 192.168.1.104:8858
+        port: 8719
+      eager: true
+
+# 网关配置
+server:
+  port: 8000
 
 # 日志配置
 logging:
   level:
-    org.springframework.cloud.gateway: debug
+    org.springframework.cloud.gateway: info
+    reactor.netty.http.client: info
+
+# 健康检查
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
