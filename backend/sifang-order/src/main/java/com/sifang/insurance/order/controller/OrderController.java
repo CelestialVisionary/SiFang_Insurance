@@ -102,4 +102,13 @@ public class OrderController {
         // 简化实现，实际应该从JWT令牌或认证上下文获取
         return 1L;
     }
+    
+    /**
+     * 更新订单核保状态（供核保服务调用）
+     * 此接口不进行用户认证，仅用于内部服务间通信
+     */
+    @PostMapping("/underwriting/status")
+    public boolean updateOrderUnderwritingStatus(@RequestParam String orderId, @RequestParam Integer underwritingStatus) {
+        return orderService.updateUnderwritingStatus(orderId, underwritingStatus);
+    }
 }

@@ -46,6 +46,12 @@ public class UnderwritingRecord implements Serializable {
     // 核保人
     private String underwriter;
     
+    // 同步状态：0-待同步 1-已同步
+    private Integer syncStatus = 0;
+    
+    // 同步时间
+    private Date syncTime;
+    
     // 创建时间
     private Date createTime;
     

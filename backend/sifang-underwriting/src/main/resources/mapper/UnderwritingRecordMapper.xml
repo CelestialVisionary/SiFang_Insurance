@@ -15,6 +15,8 @@
             result_reason,
             underwriting_time,
             underwriter,
+            sync_status,
+            sync_time,
             create_time,
             update_time
         FROM
@@ -36,6 +38,8 @@
             result_reason,
             underwriting_time,
             underwriter,
+            sync_status,
+            sync_time,
             create_time,
             update_time
         FROM
@@ -45,5 +49,44 @@
         ORDER BY
             create_time DESC
     </select>
+    
+    <!-- 查询需要同步到订单服务的核保记录 -->
+    <select id="selectNeedSyncRecords" resultType="com.sifang.insurance.underwriting.entity.UnderwritingRecord">
+        SELECT
+            id,
+            order_id,
+            user_id,
+            product_id,
+            applicant_info,
+            insured_info,
+            status,
+            result_reason,
+            underwriting_time,
+            underwriter,
+            sync_status,
+            sync_time,
+            create_time,
+            update_time
+        FROM
+            underwriting_record
+        WHERE
+            sync_status = 0
+            AND status IN (1, 2, 3)  -- 只同步已完成核保的记录（通过、拒绝、人工复核）
+        ORDER BY
+            underwriting_time ASC
+        LIMIT 100  -- 限制每次查询数量，避免单次处理过多
+    </select>
+    
+    <!-- 标记核保记录为已同步 -->
+    <update id="markAsSynced">
+        UPDATE
+            underwriting_record
+        SET
+            sync_status = 1,
+            sync_time = NOW(),
+            update_time = NOW()
+        WHERE
+            id = #{id}
+    </update>
 
 </mapper>

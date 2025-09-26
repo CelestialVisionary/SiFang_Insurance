@@ -3,6 +3,7 @@ package com.sifang.insurance.underwriting.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.sifang.insurance.underwriting.entity.UnderwritingRecord;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 /**
@@ -24,4 +25,17 @@ public interface UnderwritingRecordMapper extends BaseMapper<UnderwritingRecord>
      * @return 核保记录列表
      */
     List<UnderwritingRecord> selectByUserId(Long userId);
+    
+    /**
+     * 查询需要同步到订单服务的核保记录
+     * @return 待同步的核保记录列表
+     */
+    List<UnderwritingRecord> selectNeedSyncRecords();
+    
+    /**
+     * 标记核保记录为已同步
+     * @param id 核保记录ID
+     * @return 更新条数
+     */
+    int markAsSynced(@Param("id") Long id);
 }
