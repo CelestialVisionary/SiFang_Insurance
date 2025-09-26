@@ -142,7 +142,7 @@ public class OrderResponse {
         response.setPayStatus(order.getPayStatus());
         response.setPayStatusDesc(getPayStatusDesc(order.getPayStatus()));
         response.setUnderwritingStatus(order.getUnderwritingStatus());
-        response.setUnderwritingStatusDesc(getUnderwritingStatusDesc(order.getUnderwritingStatus()));
+        // underwritingStatusDesc会通过getter自动生成
         response.setPayMethod(order.getPayMethod());
         response.setPayMethodDesc(getPayMethodDesc(order.getPayMethod()));
         response.setPayTime(order.getPayTime());
@@ -181,7 +181,10 @@ public class OrderResponse {
     /**
      * 获取核保状态描述
      */
-    private static String getUnderwritingStatusDesc(Integer underwritingStatus) {
+    public String getUnderwritingStatusDesc() {
+        if (underwritingStatus == null) {
+            return "";
+        }
         switch (underwritingStatus) {
             case 0: return "待核保";
             case 1: return "核保通过";

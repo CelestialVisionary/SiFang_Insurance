@@ -61,6 +61,13 @@
             <artifactId>sifang-common</artifactId>
             <version>1.0.0</version>
         </dependency>
+        
+        <!-- 核保服务 -->
+        <dependency>
+            <groupId>com.sifang.insurance</groupId>
+            <artifactId>sifang-underwriting</artifactId>
+            <version>1.0.0</version>
+        </dependency>
 
         <!-- Feign -->
         <dependency>

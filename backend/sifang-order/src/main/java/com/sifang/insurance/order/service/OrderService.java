@@ -31,6 +31,16 @@ public interface OrderService extends IService<Order> {
     boolean updateOrderStatus(Long id, Integer status);
     
     /**
+     * 更新订单的核保状态
+     */
+    boolean updateUnderwritingStatus(Long id, Integer underwritingStatus);
+    
+    /**
+     * 根据核保状态查询订单列表
+     */
+    List<Order> getOrdersByUnderwritingStatus(List<Integer> underwritingStatusList);
+    
+    /**
      * 用户支付订单
      */
     boolean payOrder(Long id, Integer payMethod, String tradeNo);

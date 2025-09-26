@@ -59,6 +59,11 @@ public class Order {
      * 订单状态：1-待支付，2-已支付，3-已完成，4-已取消，5-已退款
      */
     private Integer orderStatus;
+    
+    /**
+     * 核保状态：0-待核保，1-核保通过，2-核保拒绝，3-人工复核中
+     */
+    private Integer underwritingStatus;
 
     /**
      * 支付方式：1-微信，2-支付宝，3-银行卡

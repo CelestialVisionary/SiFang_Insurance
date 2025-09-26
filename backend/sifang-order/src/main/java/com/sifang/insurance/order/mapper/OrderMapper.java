@@ -33,4 +33,14 @@ public interface OrderMapper extends BaseMapper<Order> {
      * 更新订单状态
      */
     int updateOrderStatus(@Param("id") Long id, @Param("status") Integer status);
+    
+    /**
+     * 更新订单的核保状态
+     */
+    int updateUnderwritingStatus(@Param("id") Long id, @Param("underwritingStatus") Integer underwritingStatus);
+    
+    /**
+     * 根据核保状态查询订单列表
+     */
+    List<Order> selectByUnderwritingStatusList(@Param("underwritingStatusList") List<Integer> underwritingStatusList);
 }

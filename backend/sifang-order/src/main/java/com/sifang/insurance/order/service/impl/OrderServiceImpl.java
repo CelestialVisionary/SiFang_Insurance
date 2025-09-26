@@ -3,8 +3,14 @@ package com.sifang.insurance.order.service.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.sifang.insurance.order.entity.Order;
+import com.sifang.insurance.order.feign.UnderwritingFeignClient;
 import com.sifang.insurance.order.mapper.OrderMapper;
 import com.sifang.insurance.order.service.OrderService;
+import com.sifang.insurance.underwriting.dto.UnderwritingRequest;
+import com.sifang.insurance.underwriting.dto.UnderwritingResponse;
+import com.sifang.insurance.common.entity.ResponseResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -22,11 +28,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Service
 public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements OrderService {
 
+    private static final Logger logger = LoggerFactory.getLogger(OrderServiceImpl.class);
+
     @Autowired
     private OrderMapper orderMapper;
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
+    
+    @Autowired
+    private UnderwritingFeignClient underwritingFeignClient;
 
     private static final String ORDER_NO_PREFIX = "ORDER";
     private static final String ORDER_NO_COUNTER_KEY = "order:no:counter:";
@@ -39,6 +50,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         String orderNo = generateOrderNo();
         order.setOrderNo(orderNo);
         order.setOrderStatus(1); // 待支付状态
+        order.setUnderwritingStatus(0); // 待核保
         order.setCreateTime(LocalDateTime.now());
         order.setUpdateTime(LocalDateTime.now());
         
@@ -48,7 +60,54 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
         // 缓存订单信息
         cacheOrder(order);
         
+        // 调用核保服务进行核保
+        submitUnderwritingRequest(order);
+        
         return order;
+    }
+    
+    /**
+     * 提交核保请求
+     */
+    private void submitUnderwritingRequest(Order order) {
+        try {
+            UnderwritingRequest underwritingRequest = new UnderwritingRequest();
+            underwritingRequest.setOrderId(order.getOrderNo());
+            underwritingRequest.setUserId(order.getUserId());
+            underwritingRequest.setProductId(order.getProductId());
+            
+            // 构建投保人信息（这里需要根据实际情况从其他服务或数据库获取）
+            // 简化实现，实际项目中应该从用户服务获取详细信息
+            java.util.Map<String, Object> applicantInfo = new java.util.HashMap<>();
+            applicantInfo.put("userId", order.getUserId());
+            applicantInfo.put("productId", order.getProductId());
+            applicantInfo.put("premiumAmount", order.getPremiumAmount());
+            applicantInfo.put("insuredAmount", order.getInsuredAmount());
+            
+            underwritingRequest.setApplicantInfo(applicantInfo);
+            
+            // 调用核保服务
+            ResponseResult<UnderwritingResponse> result = underwritingFeignClient.submitUnderwriting(underwritingRequest);
+            
+            if (result != null && result.getCode() == 200) {
+                UnderwritingResponse underwritingResponse = result.getData();
+                logger.info("核保请求提交成功，订单号: {}, 核保状态: {}", order.getOrderNo(), underwritingResponse.getStatus());
+                
+                // 更新订单的核保状态（调用公共方法）
+                this.updateUnderwritingStatus(order.getId(), underwritingResponse.getStatus());
+                
+                // 根据核保结果更新订单状态
+                if (underwritingResponse.getStatus() == 2) { // 核保拒绝
+                    updateOrderStatus(order.getId(), 4); // 已取消
+                    logger.info("核保拒绝，订单已取消，订单号: {}", order.getOrderNo());
+                }
+            } else {
+                logger.error("核保请求提交失败，订单号: {}", order.getOrderNo());
+            }
+        } catch (Exception e) {
+            logger.error("提交核保请求异常，订单号: {}", order.getOrderNo(), e);
+            // 核保服务调用失败，不影响订单创建，但记录日志以便后续处理
+        }
     }
 
     @Override
@@ -171,5 +230,21 @@ public class OrderServiceImpl extends ServiceImpl<OrderMapper, Order> implements
     private void clearOrderCache(Long id) {
         String cacheKey = "order:detail:" + id;
         redisTemplate.delete(cacheKey);
+    }
+    
+    @Override
+    @Transactional
+    public boolean updateUnderwritingStatus(Long id, Integer underwritingStatus) {
+        boolean result = orderMapper.updateUnderwritingStatus(id, underwritingStatus) > 0;
+        if (result) {
+            // 清除缓存
+            clearOrderCache(id);
+        }
+        return result;
+    }
+    
+    @Override
+    public List<Order> getOrdersByUnderwritingStatus(List<Integer> underwritingStatusList) {
+        return orderMapper.selectByUnderwritingStatusList(underwritingStatusList);
     }
 }

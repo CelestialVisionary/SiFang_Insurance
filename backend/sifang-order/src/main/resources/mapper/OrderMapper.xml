@@ -39,4 +39,19 @@
         SET order_status = #{status}, update_time = NOW()
         WHERE id = #{id}
     </update>
+    
+    <update id="updateUnderwritingStatus">
+        UPDATE ins_order
+        SET underwriting_status = #{underwritingStatus}, update_time = NOW()
+        WHERE id = #{id}
+    </update>
+    
+    <select id="selectByUnderwritingStatusList" resultType="com.sifang.insurance.order.entity.Order">
+        SELECT * FROM ins_order
+        WHERE underwriting_status IN
+        <foreach collection="underwritingStatusList" item="status" open="(" close=")" separator=",">
+            #{status}
+        </foreach>
+        ORDER BY create_time DESC
+    </select>
 </mapper>
