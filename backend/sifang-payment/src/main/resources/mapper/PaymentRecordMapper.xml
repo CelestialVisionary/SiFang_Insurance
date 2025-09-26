@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sifang.insurance.payment.mapper.PaymentRecordMapper">
+
+    <!-- 根据订单ID查询支付记录 -->
+    <select id="selectByOrderId" resultType="com.sifang.insurance.payment.entity.PaymentRecord">
+        SELECT
+            id,
+            payment_no,
+            order_id,
+            user_id,
+            amount,
+            payment_method,
+            status,
+            payment_time,
+            third_party_payment_no,
+            remark,
+            create_time,
+            update_time
+        FROM
+            payment_record
+        WHERE
+            order_id = #{orderId}
+    </select>
+
+    <!-- 根据支付流水号查询支付记录 -->
+    <select id="selectByPaymentNo" resultType="com.sifang.insurance.payment.entity.PaymentRecord">
+        SELECT
+            id,
+            payment_no,
+            order_id,
+            user_id,
+            amount,
+            payment_method,
+            status,
+            payment_time,
+            third_party_payment_no,
+            remark,
+            create_time,
+            update_time
+        FROM
+            payment_record
+        WHERE
+            payment_no = #{paymentNo}
+    </select>
+
+    <!-- 根据用户ID查询支付记录列表 -->
+    <select id="selectByUserId" resultType="com.sifang.insurance.payment.entity.PaymentRecord">
+        SELECT
+            id,
+            payment_no,
+            order_id,
+            user_id,
+            amount,
+            payment_method,
+            status,
+            payment_time,
+            third_party_payment_no,
+            remark,
+            create_time,
+            update_time
+        FROM
+            payment_record
+        WHERE
+            user_id = #{userId}
+        ORDER BY
+            create_time DESC
+    </select>
+
+</mapper>

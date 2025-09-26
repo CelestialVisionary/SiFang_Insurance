@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sifang.insurance.underwriting.mapper.UnderwritingRuleMapper">
+
+    <!-- 根据产品ID查询启用的核保规则 -->
+    <select id="selectEnabledRulesByProductId" resultType="com.sifang.insurance.underwriting.entity.UnderwritingRule">
+        SELECT
+            id,
+            rule_name,
+            rule_description,
+            rule_type,
+            rule_content,
+            product_id,
+            priority,
+            status,
+            create_time,
+            update_time,
+            create_by,
+            update_by
+        FROM
+            underwriting_rule
+        WHERE
+            product_id = #{productId}
+            AND status = 1
+        ORDER BY
+            priority ASC
+    </select>
+
+</mapper>

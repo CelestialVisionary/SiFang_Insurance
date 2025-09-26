@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sifang.insurance.payment.mapper.PaymentMethodMapper">
+
+    <!-- 查询启用的支付方式列表 -->
+    <select id="selectEnabledPaymentMethods" resultType="com.sifang.insurance.payment.entity.PaymentMethod">
+        SELECT
+            id,
+            method_name,
+            method_code,
+            payment_type,
+            config_params,
+            sort,
+            status,
+            create_time,
+            update_time
+        FROM
+            payment_method
+        WHERE
+            status = 1
+        ORDER BY
+            sort ASC
+    </select>
+
+    <!-- 根据支付方式编码查询 -->
+    <select id="selectByMethodCode" resultType="com.sifang.insurance.payment.entity.PaymentMethod">
+        SELECT
+            id,
+            method_name,
+            method_code,
+            payment_type,
+            config_params,
+            sort,
+            status,
+            create_time,
+            update_time
+        FROM
+            payment_method
+        WHERE
+            method_code = #{methodCode}
+    </select>
+
+</mapper>
