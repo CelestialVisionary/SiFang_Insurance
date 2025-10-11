@@ -1,0 +1,15 @@
+com\sifang\insurance\payment\entity\PaymentMethod.class
+com\sifang\insurance\payment\controller\PaymentController.class
+com\sifang\insurance\payment\service\impl\PaymentServiceImpl.class
+com\sifang\insurance\payment\consumer\OrderMessageConsumer.class
+com\sifang\insurance\payment\mapper\PaymentRecordMapper.class
+com\sifang\insurance\payment\sender\PaymentMessageSender.class
+com\sifang\insurance\payment\handler\PaymentCallbackHandler.class
+com\sifang\insurance\payment\config\StreamChannelConfig.class
+com\sifang\insurance\payment\mapper\PaymentMethodMapper.class
+com\sifang\insurance\payment\dto\PaymentResponse.class
+com\sifang\insurance\payment\config\MessageConfig.class
+com\sifang\insurance\payment\entity\PaymentRecord.class
+com\sifang\insurance\payment\dto\CreatePaymentRequest.class
+com\sifang\insurance\payment\PaymentApplication.class
+com\sifang\insurance\payment\service\PaymentService.class

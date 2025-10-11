@@ -1,6 +1,7 @@
 package com.sifang.insurance.underwriting.job;
 
 import com.sifang.insurance.underwriting.entity.UnderwritingRecord;
+import com.sifang.insurance.underwriting.feign.OrderFeignClient;
 import com.sifang.insurance.underwriting.mapper.UnderwritingRecordMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

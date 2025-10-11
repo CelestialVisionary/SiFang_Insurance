@@ -178,13 +178,13 @@ public class UnderwritingServiceImpl implements UnderwritingService {
     private String getSuggestedAction(Integer status) {
         switch (status) {
             case 1: // 核保通过
-                return "请继续完成支付流程";
+                return "订单已核保通过，可继续后续流程";
             case 2: // 核保拒绝
-                return "请修改投保信息或更换其他产品";
+                return "订单核保未通过，请联系客服了解详情";
             case 3: // 人工复核中
-                return "请耐心等待人工复核结果";
+                return "订单正在人工复核中，请耐心等待";
             default:
-                return "请稍后再试";
+                return "核保处理中，请稍后查询结果";
         }
     }
     

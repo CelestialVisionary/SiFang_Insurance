@@ -1,0 +1,50 @@
+server:
+  port: 8006
+  
+spring:
+  application:
+    name: sifang-storage
+  
+  # 文件上传配置
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 100MB
+
+# OSS配置
+oss:
+  # 阿里云OSS配置
+  aliyun:
+    endpoint: oss-cn-hangzhou.aliyuncs.com
+    access-key-id: ${OSS_ACCESS_KEY_ID:your-access-key-id}
+    access-key-secret: ${OSS_ACCESS_KEY_SECRET:your-access-key-secret}
+    bucket-name: ${OSS_BUCKET_NAME:sifang-insurance}
+    # 外网访问地址
+    domain: https://sifang-insurance.oss-cn-hangzhou.aliyuncs.com/
+    # 内网访问地址（可选）
+    internal-domain: http://sifang-insurance.oss-cn-hangzhou-internal.aliyuncs.com/
+    # 文件目录前缀
+    prefix: ${OSS_PREFIX:}
+    # 上传超时时间（毫秒）
+    upload-timeout: 30000
+    # 最大重试次数
+    max-retry: 3
+  
+  # 本地存储配置（开发环境使用）
+  local:
+    # 是否启用本地存储
+    enabled: true
+    # 本地存储路径
+    path: ${LOCAL_STORAGE_PATH:./storage}
+    # 本地存储访问前缀
+    prefix: /api/storage/local/
+
+# 健康检查配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always

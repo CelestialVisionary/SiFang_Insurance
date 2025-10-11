@@ -1,0 +1,38 @@
+server:
+  port: 8006
+
+spring:
+  application:
+    name: sifang-payment
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+      config:
+        server-addr: localhost:8848
+        file-extension: yaml
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/sifang_insurance?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: root
+  redis:
+    host: localhost
+    port: 6379
+    database: 0
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    virtual-host: /
+
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.sifang.insurance.payment.entity
+  configuration:
+    map-underscore-to-camel-case: true
+
+logging:
+  level:
+    com.sifang.insurance.payment: debug

@@ -1,0 +1,88 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: sifang-payment
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+    stream:
+      binders:
+        defaultRabbit:
+          type: rabbit
+          environment:
+            spring:
+              rabbitmq:
+                host: localhost
+                port: 5672
+                username: guest
+                password: guest
+      bindings:
+        output:
+          destination: paymentExchange
+          content-type: application/json
+        orderCreatedChannel:
+          destination: orderExchange
+          content-type: application/json
+          group: paymentGroup
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/sifang_insurance?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    username: root
+    password: 123456
+  redis:
+    host: localhost
+    port: 6379
+    password: ''
+    database: 0
+
+# MyBatis配置
+mybatis-plus:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.sifang.insurance.payment.entity
+  configuration:
+    map-underscore-to-camel-case: true
+
+# 日志配置
+logging:
+  level:
+    com.sifang.insurance.payment: info
+    org.springframework: info
+    com.baomidou.mybatisplus: info
+
+# 支付配置
+payment:
+  # 支付宝配置
+  alipay:
+    app_id: 2021000000000000
+    merchant_private_key: your_private_key
+    alipay_public_key: alipay_public_key
+    notify_url: http://your-domain/api/payment/callback/1
+    return_url: http://your-domain/payment/return
+  # 微信支付配置
+  wechat:
+    app_id: wx1234567890abcdef
+    mch_id: 1234567890
+    mch_key: your_mch_key
+    notify_url: http://your-domain/api/payment/callback/2
+  # 银联支付配置
+  unionpay:
+    mer_id: 8981111111111111111
+    cert_path: /path/to/cert
+    notify_url: http://your-domain/api/payment/callback/3
+
+# 熔断配置
+feign:
+  hystrix:
+    enabled: true
+
+# 超时配置
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 5000
