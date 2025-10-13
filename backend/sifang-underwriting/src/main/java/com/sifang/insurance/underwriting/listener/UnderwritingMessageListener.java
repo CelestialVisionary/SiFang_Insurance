@@ -17,6 +17,8 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -31,6 +33,9 @@ public class UnderwritingMessageListener {
     
     @Autowired
     private UnderwritingService underwritingService;
+    
+    // 使用阻塞队列存储待发送的核保结果消息
+    private final BlockingQueue<Message<String>> resultQueue = new LinkedBlockingQueue<>();
     
     /**
      * 处理待核保的订单消息
@@ -121,18 +126,34 @@ public class UnderwritingMessageListener {
             headers.put("contentType", "application/json");
             headers.put("orderId", response.getOrderId());
             
-            // 创建消息（在函数式模型中，输出会自动绑定到配置的通道）
+            // 创建消息并放入队列
             Message<String> message = MessageBuilder
                     .withPayload(resultJson)
                     .copyHeaders(headers)
                     .build();
             
-            // 在函数式模型中，输出消息会通过配置的输出通道自动发送
-            // 这里我们只需要记录日志
+            resultQueue.offer(message);
             logger.info("核保结果已准备发送，订单ID: {}", response.getOrderId());
             
         } catch (Exception e) {
             logger.error("准备核保结果消息失败: {}", e.getMessage(), e);
         }
+    }
+    
+    /**
+     * 核保结果输出通道
+     * 用于将核保结果发送到消息队列
+     */
+    @Bean
+    public Supplier<Message<String>> underwritingOutput() {
+        return () -> {
+            try {
+                // 从队列中获取消息，如果队列为空则返回null（不会阻塞）
+                return resultQueue.poll();
+            } catch (Exception e) {
+                logger.error("获取核保结果消息失败: {}", e.getMessage(), e);
+                return null;
+            }
+        };
     }
 }

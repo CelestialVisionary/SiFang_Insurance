@@ -1,9 +1,10 @@
 package com.sifang.insurance.underwriting.job;
 
 import com.alibaba.fastjson.JSON;
+import com.sifang.insurance.underwriting.client.FeignOrderService;
 import com.sifang.insurance.underwriting.entity.UnderwritingRecord;
 import com.sifang.insurance.underwriting.mapper.UnderwritingRecordMapper;
-import com.sifang.insurance.underwriting.service.FeignOrderService;
+import com.sifang.insurance.underwriting.common.vo.ResponseResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,34 +54,39 @@ public class UnderwritingSyncJob {
             // 遍历处理每条记录
             for (UnderwritingRecord record : records) {
                 try {
-                    // 构建同步数据
-                    Map<String, Object> syncData = new HashMap<>();
-                    syncData.put("orderId", record.getOrderId());
-                    syncData.put("underwritingStatus", record.getStatus());
-                    syncData.put("resultReason", record.getResultReason());
-                    syncData.put("underwritingTime", record.getUnderwritingTime());
+                    // 构建核保结果详情
+                    Map<String, Object> underwritingResult = new HashMap<>();
+                    underwritingResult.put("underwritingId", record.getId());
+                    underwritingResult.put("resultReason", record.getResultReason());
+                    underwritingResult.put("underwriter", record.getUnderwriter());
+                    underwritingResult.put("underwritingTime", record.getUnderwritingTime());
+                    underwritingResult.put("applicantInfo", JSON.parseObject(record.getApplicantInfo()));
+                    if (record.getInsuredInfo() != null && !record.getInsuredInfo().isEmpty()) {
+                        underwritingResult.put("insuredInfo", JSON.parseObject(record.getInsuredInfo()));
+                    }
                     
                     logger.info("同步核保结果到订单服务，订单ID: {}, 状态: {}", 
                             record.getOrderId(), record.getStatus());
                     
                     // 调用订单服务更新核保状态
-                    boolean syncSuccess = false;
+                    ResponseResult<Boolean> response = null;
                     try {
-                        // 这里使用Feign客户端调用订单服务
-                        // 如果订单服务不可用，会抛出异常，进入catch块
-                        syncSuccess = feignOrderService.updateUnderwritingStatus(syncData);
+                        // 调用Feign客户端更新订单核保状态
+                        response = feignOrderService.updateOrderUnderwritingStatus(
+                                record.getOrderId(), record.getStatus(), underwritingResult);
                     } catch (Exception e) {
-                        // 服务调用失败，记录日志，但不标记为已同步
+                        // 服务调用失败，记录日志
                         logger.error("调用订单服务失败，订单ID: {}", record.getOrderId(), e);
                         continue;
                     }
                     
-                    if (syncSuccess) {
-                        // 同步成功，标记为已同步
+                    if (response != null && response.getCode() == 200 && Boolean.TRUE.equals(response.getData())) {
+                        // 更新核保记录的同步状态
                         underwritingRecordMapper.markAsSynced(record.getId());
                         logger.info("核保结果同步成功，订单ID: {}", record.getOrderId());
                     } else {
-                        logger.warn("核保结果同步失败，订单服务返回失败，订单ID: {}", record.getOrderId());
+                        logger.warn("核保结果同步失败，订单服务返回失败，订单ID: {}, 原因: {}", 
+                                record.getOrderId(), (response != null ? response.getMessage() : "未知错误"));
                     }
                     
                 } catch (Exception e) {
