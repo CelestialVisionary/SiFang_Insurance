@@ -8,3 +8,29 @@ spring:
     host: localhost
     port: 6379
     database: 0
+  # Spring Cloud Stream 函数式配置
+  cloud:
+    stream:
+      function:
+        definition: underwritingInput
+      bindings:
+        underwritingInput-in-0:
+          destination: underwriting-input
+          group: underwriting-group
+          consumer:
+            autoCommitOffset: false
+        underwritingOutput-out-0:
+          destination: underwriting-output
+      # RabbitMQ 配置
+      rabbit:
+        bindings:
+          underwritingInput-in-0:
+            consumer:
+              acknowledgeMode: manual
+              prefetch: 10
+              repuQueueName: underwriting-input.retry
+              retryExchangeName: underwriting-input.retry
+          underwritingOutput-out-0:
+            producer:
+              routingKeyExpression: headers['orderId']
+              deliveryMode: persistent
