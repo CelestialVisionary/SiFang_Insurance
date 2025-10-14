@@ -4,10 +4,16 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.sifang.insurance.underwriting.entity.UnderwritingRule;
 import com.sifang.insurance.underwriting.mapper.UnderwritingRuleMapper;
 import com.sifang.insurance.underwriting.service.UnderwritingRuleService;
+import org.kie.api.KieServices;
+import org.kie.api.builder.KieBuilder;
+import org.kie.api.builder.KieFileSystem;
+import org.kie.internal.io.ResourceFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 核保规则服务实现类
@@ -25,6 +31,12 @@ public class UnderwritingRuleServiceImpl extends ServiceImpl<UnderwritingRuleMap
 
     @Override
     public boolean saveRule(UnderwritingRule rule) {
+        // 先验证规则语法
+        Map<String, Object> validateResult = validateRuleSyntax(rule.getRuleContent());
+        if (!(boolean) validateResult.get("valid")) {
+            throw new IllegalArgumentException("规则语法错误: " + validateResult.get("errorMessage"));
+        }
+        
         // 设置默认值
         if (rule.getStatus() == null) {
             rule.setStatus(1); // 默认启用
@@ -46,5 +58,35 @@ public class UnderwritingRuleServiceImpl extends ServiceImpl<UnderwritingRuleMap
     @Override
     public boolean deleteRule(Long id) {
         return this.removeById(id);
+    }
+    
+    @Override
+    public Map<String, Object> validateRuleSyntax(String ruleContent) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("valid", true);
+        result.put("errorMessage", "");
+        
+        try {
+            // 使用Drools引擎验证规则语法
+            KieServices kieServices = KieServices.Factory.get();
+            KieFileSystem kfs = kieServices.newKieFileSystem();
+            
+            // 写入规则内容进行编译验证
+            kfs.write("src/main/resources/rules/validation.drl", 
+                    ResourceFactory.newByteArrayResource(ruleContent.getBytes("UTF-8")));
+            
+            KieBuilder kieBuilder = kieServices.newKieBuilder(kfs).buildAll();
+            
+            // 检查是否有编译错误
+            if (kieBuilder.getResults().hasMessages()) {
+                result.put("valid", false);
+                result.put("errorMessage", kieBuilder.getResults().toString());
+            }
+        } catch (Exception e) {
+            result.put("valid", false);
+            result.put("errorMessage", "规则验证失败: " + e.getMessage());
+        }
+        
+        return result;
     }
 }

@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 核保规则管理控制器
@@ -40,11 +41,19 @@ public class UnderwritingRuleController {
     @PostMapping("/save")
     @ApiOperation(value = "保存核保规则", notes = "新增或修改核保规则")
     public ResponseResult<Boolean> saveRule(@RequestBody UnderwritingRule rule) {
-        boolean result = underwritingRuleService.saveRule(rule);
-        if (result) {
-            return ResponseResult.success(true, "保存成功");
+        try {
+            boolean result = underwritingRuleService.saveRule(rule);
+            if (result) {
+                return ResponseResult.success(true, "保存成功");
+            }
+            return ResponseResult.fail("保存失败");
+        } catch (IllegalArgumentException e) {
+            // 捕获规则语法错误异常
+            return ResponseResult.fail(e.getMessage());
+        } catch (Exception e) {
+            // 捕获其他异常
+            return ResponseResult.fail("保存失败: " + e.getMessage());
         }
-        return ResponseResult.fail("保存失败");
     }
 
     /**
@@ -90,5 +99,16 @@ public class UnderwritingRuleController {
             return ResponseResult.fail("规则不存在");
         }
         return ResponseResult.success(rule);
+    }
+    
+    /**
+     * 验证核保规则语法
+     */
+    @PostMapping("/validate")
+    @ApiOperation(value = "验证规则语法", notes = "验证核保规则的语法正确性")
+    @ApiImplicitParam(name = "ruleContent", value = "规则内容", required = true, dataType = "String", paramType = "form")
+    public ResponseResult<Map<String, Object>> validateRuleSyntax(@RequestParam String ruleContent) {
+        Map<String, Object> validateResult = underwritingRuleService.validateRuleSyntax(ruleContent);
+        return ResponseResult.success(validateResult);
     }
 }

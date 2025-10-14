@@ -3,6 +3,7 @@ package com.sifang.insurance.underwriting.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.sifang.insurance.underwriting.entity.UnderwritingRule;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 核保规则服务接口
@@ -22,6 +23,13 @@ public interface UnderwritingRuleService extends IService<UnderwritingRule> {
      * @return 是否保存成功
      */
     boolean saveRule(UnderwritingRule rule);
+    
+    /**
+     * 验证核保规则语法
+     * @param ruleContent 规则内容
+     * @return 验证结果，包含是否通过和错误信息
+     */
+    Map<String, Object> validateRuleSyntax(String ruleContent);
     
     /**
      * 更新核保规则状态
