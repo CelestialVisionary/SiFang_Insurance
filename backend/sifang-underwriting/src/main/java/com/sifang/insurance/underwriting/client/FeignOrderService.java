@@ -19,14 +19,14 @@ public interface FeignOrderService {
      * 更新订单的核保状态
      * @param orderId 订单ID
      * @param underwritingStatus 核保状态
-     * @param underwritingResult 核保结果详情
+     * @param underwritingResult 核保结果详情（JSON字符串格式）
      * @return 响应结果
      */
     @PostMapping("/api/order/underwriting/status")
     ResponseResult<Boolean> updateOrderUnderwritingStatus(
             @RequestParam("orderId") String orderId,
             @RequestParam("underwritingStatus") Integer underwritingStatus,
-            @RequestBody Map<String, Object> underwritingResult);
+            @RequestBody String underwritingResult);
 
     /**
      * 获取订单详情

@@ -71,9 +71,9 @@ public class UnderwritingSyncJob {
                     // 调用订单服务更新核保状态
                     ResponseResult<Boolean> response = null;
                     try {
-                        // 调用Feign客户端更新订单核保状态
+                        // 调用Feign客户端更新订单核保状态 - 确保参数正确传递
                         response = feignOrderService.updateOrderUnderwritingStatus(
-                                record.getOrderId(), record.getStatus(), underwritingResult);
+                                record.getOrderId(), record.getStatus(), JSON.toJSONString(underwritingResult));
                     } catch (Exception e) {
                         // 服务调用失败，记录日志
                         logger.error("调用订单服务失败，订单ID: {}", record.getOrderId(), e);
