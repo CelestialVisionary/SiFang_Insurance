@@ -25,6 +25,15 @@ public interface UnderwritingRuleService extends IService<UnderwritingRule> {
     boolean saveRule(UnderwritingRule rule);
     
     /**
+     * 保存核保规则（带版本管理）
+     * @param rule 核保规则对象
+     * @param versionRemark 版本说明
+     * @param createBy 创建人
+     * @return 是否保存成功
+     */
+    boolean saveRule(UnderwritingRule rule, String versionRemark, String createBy);
+    
+    /**
      * 验证核保规则语法
      * @param ruleContent 规则内容
      * @return 验证结果，包含是否通过和错误信息

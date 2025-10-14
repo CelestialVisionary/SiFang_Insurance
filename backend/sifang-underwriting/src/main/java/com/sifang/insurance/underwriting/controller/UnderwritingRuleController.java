@@ -1,7 +1,9 @@
 package com.sifang.insurance.underwriting.controller;
 
 import com.sifang.insurance.underwriting.entity.UnderwritingRule;
+import com.sifang.insurance.underwriting.entity.UnderwritingRuleVersion;
 import com.sifang.insurance.underwriting.service.UnderwritingRuleService;
+import com.sifang.insurance.underwriting.service.UnderwritingRuleVersionService;
 import com.sifang.insurance.underwriting.common.vo.ResponseResult;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -23,6 +25,9 @@ public class UnderwritingRuleController {
 
     @Autowired
     private UnderwritingRuleService underwritingRuleService;
+    
+    @Autowired
+    private UnderwritingRuleVersionService underwritingRuleVersionService;
 
     /**
      * 根据产品ID获取启用的核保规则列表
@@ -40,9 +45,16 @@ public class UnderwritingRuleController {
      */
     @PostMapping("/save")
     @ApiOperation(value = "保存核保规则", notes = "新增或修改核保规则")
-    public ResponseResult<Boolean> saveRule(@RequestBody UnderwritingRule rule) {
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "rule", value = "规则对象", required = true, dataType = "UnderwritingRule", paramType = "body"),
+            @ApiImplicitParam(name = "versionRemark", value = "版本说明", required = false, dataType = "String", paramType = "query")
+    })
+    public ResponseResult<Boolean> saveRule(@RequestBody UnderwritingRule rule, @RequestParam(required = false) String versionRemark) {
         try {
-            boolean result = underwritingRuleService.saveRule(rule);
+            // 设置操作人（实际应用中应从当前登录用户获取）
+            String operator = "admin";
+            
+            boolean result = underwritingRuleService.saveRule(rule, versionRemark, operator);
             if (result) {
                 return ResponseResult.success(true, "保存成功");
             }
@@ -110,5 +122,48 @@ public class UnderwritingRuleController {
     public ResponseResult<Map<String, Object>> validateRuleSyntax(@RequestParam String ruleContent) {
         Map<String, Object> validateResult = underwritingRuleService.validateRuleSyntax(ruleContent);
         return ResponseResult.success(validateResult);
+    }
+    
+    /**
+     * 获取规则版本列表
+     */
+    @GetMapping("/versions/{ruleId}")
+    @ApiOperation(value = "获取规则版本列表", notes = "根据规则ID获取所有版本历史")
+    @ApiImplicitParam(name = "ruleId", value = "规则ID", required = true, dataType = "Long", paramType = "path")
+    public ResponseResult<List<UnderwritingRuleVersion>> getRuleVersions(@PathVariable Long ruleId) {
+        List<UnderwritingRuleVersion> versions = underwritingRuleVersionService.getVersionsByRuleId(ruleId);
+        return ResponseResult.success(versions);
+    }
+    
+    /**
+     * 获取版本详情
+     */
+    @GetMapping("/version/detail/{versionId}")
+    @ApiOperation(value = "获取版本详情", notes = "根据版本ID获取版本详细信息")
+    @ApiImplicitParam(name = "versionId", value = "版本ID", required = true, dataType = "Long", paramType = "path")
+    public ResponseResult<UnderwritingRuleVersion> getVersionDetail(@PathVariable Long versionId) {
+        UnderwritingRuleVersion version = underwritingRuleVersionService.getVersionById(versionId);
+        if (version == null) {
+            return ResponseResult.fail("版本不存在");
+        }
+        return ResponseResult.success(version);
+    }
+    
+    /**
+     * 回滚到指定版本
+     */
+    @PostMapping("/version/rollback/{versionId}")
+    @ApiOperation(value = "回滚到指定版本", notes = "将规则回滚到指定的历史版本")
+    @ApiImplicitParam(name = "versionId", value = "版本ID", required = true, dataType = "Long", paramType = "path")
+    public ResponseResult<Boolean> rollbackToVersion(@PathVariable Long versionId) {
+        try {
+            boolean result = underwritingRuleVersionService.rollbackToVersion(versionId);
+            if (result) {
+                return ResponseResult.success(true, "回滚成功");
+            }
+            return ResponseResult.fail("回滚失败，版本不存在");
+        } catch (Exception e) {
+            return ResponseResult.fail("回滚失败: " + e.getMessage());
+        }
     }
 }

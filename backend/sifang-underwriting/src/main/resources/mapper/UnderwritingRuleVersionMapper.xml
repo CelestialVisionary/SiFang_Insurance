@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sifang.insurance.underwriting.mapper.UnderwritingRuleVersionMapper">
+
+    <!-- 根据规则ID查询所有版本 -->
+    <select id="selectByRuleId" resultType="com.sifang.insurance.underwriting.entity.UnderwritingRuleVersion">
+        SELECT
+            id,
+            rule_id,
+            version,
+            rule_content,
+            rule_name,
+            rule_description,
+            rule_type,
+            product_id,
+            priority,
+            version_remark,
+            create_by,
+            create_time,
+            is_current
+        FROM
+            underwriting_rule_version
+        WHERE
+            rule_id = #{ruleId}
+        ORDER BY
+            version DESC
+    </select>
+
+    <!-- 查询规则的最新版本号 -->
+    <select id="selectLatestVersion" resultType="java.lang.Integer">
+        SELECT
+            COALESCE(MAX(version), 0)
+        FROM
+            underwriting_rule_version
+        WHERE
+            rule_id = #{ruleId}
+    </select>
+
+    <!-- 将规则的所有版本标记为非当前版本 -->
+    <update id="updateAllVersionsToNonCurrent">
+        UPDATE
+            underwriting_rule_version
+        SET
+            is_current = 0
+        WHERE
+            rule_id = #{ruleId}
+    </update>
+
+    <!-- 根据版本ID查询规则版本 -->
+    <select id="selectById" resultType="com.sifang.insurance.underwriting.entity.UnderwritingRuleVersion">
+        SELECT
+            id,
+            rule_id,
+            version,
+            rule_content,
+            rule_name,
+            rule_description,
+            rule_type,
+            product_id,
+            priority,
+            version_remark,
+            create_by,
+            create_time,
+            is_current
+        FROM
+            underwriting_rule_version
+        WHERE
+            id = #{id}
+    </select>
+
+</mapper>

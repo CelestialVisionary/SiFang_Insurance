@@ -4,12 +4,14 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.sifang.insurance.underwriting.entity.UnderwritingRule;
 import com.sifang.insurance.underwriting.mapper.UnderwritingRuleMapper;
 import com.sifang.insurance.underwriting.service.UnderwritingRuleService;
+import com.sifang.insurance.underwriting.service.UnderwritingRuleVersionService;
 import org.kie.api.KieServices;
 import org.kie.api.builder.KieBuilder;
 import org.kie.api.builder.KieFileSystem;
 import org.kie.internal.io.ResourceFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.List;
@@ -23,6 +25,9 @@ public class UnderwritingRuleServiceImpl extends ServiceImpl<UnderwritingRuleMap
 
     @Autowired
     private UnderwritingRuleMapper underwritingRuleMapper;
+    
+    @Autowired
+    private UnderwritingRuleVersionService underwritingRuleVersionService;
 
     @Override
     public List<UnderwritingRule> getEnabledRulesByProductId(Long productId) {
@@ -45,6 +50,34 @@ public class UnderwritingRuleServiceImpl extends ServiceImpl<UnderwritingRuleMap
             rule.setPriority(100); // 默认优先级
         }
         return this.save(rule);
+    }
+
+    @Override
+    @Transactional
+    public boolean saveRule(UnderwritingRule rule, String versionRemark, String createBy) {
+        // 先验证规则语法
+        Map<String, Object> validateResult = validateRuleSyntax(rule.getRuleContent());
+        if (!(boolean) validateResult.get("valid")) {
+            throw new IllegalArgumentException("规则语法错误: " + validateResult.get("errorMessage"));
+        }
+        
+        // 设置默认值
+        if (rule.getStatus() == null) {
+            rule.setStatus(1); // 默认启用
+        }
+        if (rule.getPriority() == null) {
+            rule.setPriority(100); // 默认优先级
+        }
+        
+        boolean isUpdate = rule.getId() != null;
+        boolean saveResult = this.saveOrUpdate(rule);
+        
+        // 如果是更新操作且保存成功，则创建新版本
+        if (isUpdate && saveResult && versionRemark != null) {
+            underwritingRuleVersionService.createVersion(rule, versionRemark, createBy);
+        }
+        
+        return saveResult;
     }
 
     @Override
