@@ -88,5 +88,70 @@
         WHERE
             id = #{id}
     </update>
-
+    
+    <!-- 条件查询的基础SQL片段 -->
+    <sql id="conditionWhere">
+        <where>
+            <if test="orderId != null and orderId != ''">
+                AND order_id = #{orderId}
+            </if>
+            <if test="userId != null">
+                AND user_id = #{userId}
+            </if>
+            <if test="productId != null">
+                AND product_id = #{productId}
+            </if>
+            <if test="status != null">
+                AND status = #{status}
+            </if>
+            <if test="startDate != null and startDate != ''">
+                AND create_time >= #{startDate}
+            </if>
+            <if test="endDate != null and endDate != ''">
+                AND create_time <= #{endDate}
+            </if>
+        </where>
+    </sql>
+    
+    <!-- 分页查询核保记录 -->
+    <select id="selectPageByCondition" resultType="com.sifang.insurance.underwriting.entity.UnderwritingRecord">
+        SELECT
+            id,
+            order_id,
+            user_id,
+            product_id,
+            applicant_info,
+            insured_info,
+            status,
+            result_reason,
+            underwriting_time,
+            underwriter,
+            sync_status,
+            sync_time,
+            create_time,
+            update_time
+        FROM
+            underwriting_record
+        <include refid="conditionWhere"/>
+        ORDER BY create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+    
+    <!-- 根据条件查询核保记录总数 -->
+    <select id="selectCountByCondition" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM underwriting_record
+        <include refid="conditionWhere"/>
+    </select>
+    
+    <!-- 查询核保统计信息 -->
+    <select id="selectStatistics" resultType="java.util.Map">
+        SELECT
+            SUM(CASE WHEN status = 1 THEN 1 ELSE 0 END) AS passedCount,
+            SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) AS rejectedCount,
+            SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END) AS manualReviewCount,
+            SUM(CASE WHEN status = 0 THEN 1 ELSE 0 END) AS pendingCount,
+            AVG(TIMESTAMPDIFF(SECOND, create_time, underwriting_time)) AS avgProcessTime
+        FROM underwriting_record
+        <include refid="conditionWhere"/>
+    </select>
 </mapper>
