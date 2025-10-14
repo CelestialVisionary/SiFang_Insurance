@@ -6,6 +6,7 @@ import com.sifang.insurance.underwriting.dto.UnderwritingResponse;
 import com.sifang.insurance.underwriting.entity.UnderwritingRecord;
 import com.sifang.insurance.underwriting.entity.UnderwritingRule;
 import com.sifang.insurance.underwriting.mapper.UnderwritingRecordMapper;
+import com.sifang.insurance.underwriting.service.UnderwritingRecordService;
 import com.sifang.insurance.underwriting.service.UnderwritingRuleService;
 import com.sifang.insurance.underwriting.service.UnderwritingService;
 import org.kie.api.KieBase;
@@ -30,7 +31,7 @@ import java.util.List;
 public class UnderwritingServiceImpl implements UnderwritingService {
 
     @Autowired
-    private UnderwritingRecordMapper underwritingRecordMapper;
+    private UnderwritingRecordService underwritingRecordService;
     
     @Autowired
     private UnderwritingRuleService underwritingRuleService;
@@ -49,7 +50,7 @@ public class UnderwritingServiceImpl implements UnderwritingService {
         record.setCreateTime(new Date());
         record.setUpdateTime(new Date());
         
-        underwritingRecordMapper.insert(record);
+        underwritingRecordService.save(record);
         
         // 执行核保流程
         return processUnderwriting(record);
@@ -128,7 +129,7 @@ public class UnderwritingServiceImpl implements UnderwritingService {
             // 更新核保记录
             record.setUnderwritingTime(new Date());
             record.setUpdateTime(new Date());
-            underwritingRecordMapper.updateById(record);
+            underwritingRecordService.updateById(record);
             
             response.setUnderwritingTime(record.getUnderwritingTime());
             response.setSuggestedAction(getSuggestedAction(response.getStatus()));
@@ -138,7 +139,7 @@ public class UnderwritingServiceImpl implements UnderwritingService {
             record.setStatus(3);
             record.setResultReason("系统处理异常: " + e.getMessage());
             record.setUpdateTime(new Date());
-            underwritingRecordMapper.updateById(record);
+            underwritingRecordService.updateById(record);
             
             response.setStatus(3);
             response.setStatusDesc("人工复核中");
@@ -152,13 +153,13 @@ public class UnderwritingServiceImpl implements UnderwritingService {
 
     @Override
     public UnderwritingRecord queryUnderwritingResult(String orderId) {
-        return underwritingRecordMapper.selectByOrderId(orderId);
+        return underwritingRecordService.selectByOrderId(orderId);
     }
 
     @Override
     @Transactional
     public boolean manualReview(Long id, Integer status, String reason, String underwriter) {
-        UnderwritingRecord record = underwritingRecordMapper.selectById(id);
+        UnderwritingRecord record = underwritingRecordService.getById(id);
         if (record == null) {
             return false;
         }
@@ -169,7 +170,7 @@ public class UnderwritingServiceImpl implements UnderwritingService {
         record.setUnderwritingTime(new Date());
         record.setUpdateTime(new Date());
         
-        return underwritingRecordMapper.updateById(record) > 0;
+        return underwritingRecordService.updateById(record);
     }
     
     /**
